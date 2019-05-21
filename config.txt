@@ -1,9 +1,11 @@
-.background: #000000
-*Toplevel.background: #f06060
-.window.background: #000000
-*txt.background: #f06060
+#*background: #000000
+*Toplevel.background: #000000
+*root.background: #00ff00
+#*txt.background: #f06060
+*Text.background: #0f06fa
 *Text.foreground: #0f06fa
 
 *Button*foreground: gray55
 *Button*relief: raised
 *Button*width: 5
+

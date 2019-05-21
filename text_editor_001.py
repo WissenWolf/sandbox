@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.filedialog
+import tkinter.messagebox
 import os
 import about
 
@@ -10,9 +11,34 @@ root.geometry("600x450+200+100")
 root.title(PROGRAM_NAME)
 
 file_name = None
+last_saved=True
+last_key_system=False
 
 def callback(event=None):
     pass
+
+def not_saved(event):
+    global last_saved, last_key_system
+    print (event)
+    if event.keycode < 30:
+        last_key_system=True
+        print("Это не считается")
+    elif event.keycode >= 30:
+        if last_key_system:
+            last_key_system=False
+            pass
+        else:
+            last_key_system = False
+    # elif event.key
+            last_saved=False
+    print (last_saved)
+
+def new_file(event=None):
+    global file_name
+    file_name = None
+    content_text.delete(1.0, tk.END)
+    root.title('{} :: {}'.format("Новый документ", PROGRAM_NAME))
+    print("Начинаем новую жизнь с чистого листа")  # отладочная информация
 
 
 def cut(event=None):
@@ -39,7 +65,9 @@ def save(event=None):
 def saveas(event=None):
     content_text.event_generate("<<SaveAs>>")
     print("Выбран save as")
-    input_file_name = tkinter.filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")])
+    input_file_name = tkinter.filedialog.asksaveasfilename(defaultextension=".txt",
+                                                           filetypes=[("Text Documents", "*.txt"),
+                                                                      ("All Files", "*.*")])
     if input_file_name:
         global file_name
     file_name = input_file_name
@@ -47,6 +75,7 @@ def saveas(event=None):
     root.title('{} - {}'.format(os.path.basename(file_name),
                                 PROGRAM_NAME))
     return "break"
+
 
 def write_to_file(file_name):
     try:
@@ -57,17 +86,21 @@ def write_to_file(file_name):
         pass
         # pass for now but we show some warning - we do this in next iteration
 
+
 def file_open(event=None):
-    input_file_name = tkinter.filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text Documents", "*.txt"), ("All Files", "*.*"),])
+    input_file_name = tkinter.filedialog.askopenfilename(defaultextension=".txt",
+                                                         filetypes=[("Text Documents", "*.txt"),
+                                                                    ("All Files", "*.*"), ])
     if input_file_name:
         global file_name
         file_name = input_file_name
         root.title('{} :: {}'.format(os.path.basename(file_name),
-                                    PROGRAM_NAME))
+                                     PROGRAM_NAME))
         content_text.delete(1.0, tk.END)
         with open(file_name) as _file:
             content_text.insert(1.0, _file.read())
     return 'break'
+
 
 def paste(event=None):
     content_text.event_generate("<<Paste>>")
@@ -75,6 +108,10 @@ def paste(event=None):
 
 
 def show_help(event):
+    about.Help()
+
+
+def show_about(event):
     about.About()
 
 
@@ -87,6 +124,25 @@ def redo(event=None):
 def select_all(event=None):
     content_text.tag_add('sel', '1.0', 'end')
     return "break"
+
+
+def exit_editor(event=None):
+    global last_saved
+    if not last_saved:
+        answer = tkinter.messagebox.askyesnocancel(title="документ не сохранён", message="Сохранить документ?")
+        print (answer)
+        if answer==True:
+            if save():
+                root.destroy()
+            else:
+                return 'break'
+        elif answer==False:
+            root.destroy()
+        elif answer==None:
+            return 'break'
+    else:
+        root.destroy()
+    #     root.destroy()
 
 
 def find_text(event=None):
@@ -146,11 +202,11 @@ main_menu = tk.Menu(root)
 
 file_menu = tk.Menu(main_menu, tearoff=0)
 main_menu.add_cascade(label="Файл", menu=file_menu)
-file_menu.add_command(label="Новый", accelerator="Ctrl + N", compound='left', command=callback)
+file_menu.add_command(label="Новый", accelerator="Ctrl + N", compound='left', command=new_file)
 file_menu.add_command(label="Открыть", accelerator="Ctrl + O", compound='left', command=file_open)
 file_menu.add_command(label="Сохранить", accelerator="Ctrl + S", compound='left', command=save)
-file_menu.add_command(label="Сохранить как", accelerator="Ctrl + Shift + S", compound='left', command=callback)
-file_menu.add_command(label="Выйти", accelerator="Ctrl + Q", compound='left', command=lambda: root.destroy())
+file_menu.add_command(label="Сохранить как", accelerator="Ctrl + Shift + S", compound='left', command=saveas)
+file_menu.add_command(label="Выйти", accelerator="Ctrl + Q", compound='left', command=lambda: exit_editor())
 
 edit_menu = tk.Menu(main_menu, tearoff=0)
 main_menu.add_cascade(label="Правка", menu=edit_menu)
@@ -175,14 +231,17 @@ themes_menu.add_radiobutton(label="Darkula", variable=theme_name)
 
 about_menu = tk.Menu(main_menu, tearoff=0)
 main_menu.add_cascade(label="Помощь", menu=about_menu)
-about_menu.add_command(label="Помощь", accelerator="F1", compound='left', command=about.About)
+about_menu.add_command(label="Помощь", accelerator="F1", compound='left', command=about.Help)
 about_menu.add_command(label="О программе", compound='left', command=about.About)
 
 root.config(menu=main_menu)
+root.protocol('WM_DELETE_WINDOW', exit_editor)
 # end блок меню
 
-root.bind("<Control-q>", lambda x: root.destroy())
-root.bind("<Control-Q>", lambda x: root.destroy())
+root.bind("<Control-N>", lambda x: new_file())
+root.bind("<Control-n>", lambda x: new_file())
+root.bind("<Control-q>", lambda x: exit_editor())
+root.bind("<Control-Q>", lambda x: exit_editor())
 root.bind("<Control-O>", lambda x: file_open())
 root.bind("<Control-o>", lambda x: file_open())
 root.bind("<Control-S>", lambda x: save())
@@ -211,5 +270,6 @@ content_text.bind('<Control-c>', copy)
 content_text.bind('<Control-v>', paste)
 content_text.bind('<Control-f>', find_text)
 content_text.bind('<Control-F>', find_text)
+content_text.bind("<Key>", lambda x: not_saved(x))
 
 tk.mainloop()
