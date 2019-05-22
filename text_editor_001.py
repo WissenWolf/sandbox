@@ -3,6 +3,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 import os
 import about
+# import toolbar
 
 PROGRAM_NAME = "Quaero! 3::Блокнот"
 
@@ -13,9 +14,16 @@ root.title(PROGRAM_NAME)
 file_name = None
 last_saved=True
 last_key_system=False
+toolbar_visible = True
 
 def callback(event=None):
     pass
+def show_toolbar(status):
+    print(status)
+    if status == 0:
+        shortcut_bar.forget()
+    elif status == 1:
+        shortcut_bar.pack(expand='no', fill='x') # todo заменить на grid
 
 def not_saved(event):
     global last_saved, last_key_system
@@ -87,7 +95,7 @@ def write_to_file(file_name):
         # pass for now but we show some warning - we do this in next iteration
 
 
-def file_open(event=None):
+def open_file(event=None):
     input_file_name = tkinter.filedialog.askopenfilename(defaultextension=".txt",
                                                          filetypes=[("Text Documents", "*.txt"),
                                                                     ("All Files", "*.*"), ])
@@ -118,6 +126,11 @@ def show_about(event):
 def redo(event=None):
     print("Выбран redo")
     content_text.event_generate("<<Redo>>")
+    return 'break'
+
+def undo(event=None):
+    print("Выбран undo")
+    content_text.event_generate("<<Undo>>")
     return 'break'
 
 
@@ -203,7 +216,7 @@ main_menu = tk.Menu(root)
 file_menu = tk.Menu(main_menu, tearoff=0)
 main_menu.add_cascade(label="Файл", menu=file_menu)
 file_menu.add_command(label="Новый", accelerator="Ctrl + N", compound='left', command=new_file)
-file_menu.add_command(label="Открыть", accelerator="Ctrl + O", compound='left', command=file_open)
+file_menu.add_command(label="Открыть", accelerator="Ctrl + O", compound='left', command=open_file)
 file_menu.add_command(label="Сохранить", accelerator="Ctrl + S", compound='left', command=save)
 file_menu.add_command(label="Сохранить как", accelerator="Ctrl + Shift + S", compound='left', command=saveas)
 file_menu.add_command(label="Выйти", accelerator="Ctrl + Q", compound='left', command=lambda: exit_editor())
@@ -221,6 +234,10 @@ edit_menu.add_command(label="Искать", accelerator="Ctrl+F", compound='left
 view_menu = tk.Menu(main_menu, tearoff=0)
 main_menu.add_cascade(label="Вид", menu=view_menu)
 view_menu.add_checkbutton(label="Показывать номера строк", variable=None)
+
+show_toolbar_var = tk.IntVar()
+show_toolbar_var.set(1)
+view_menu.add_checkbutton(label="Показывать тулбар", variable=show_toolbar_var, command=lambda : show_toolbar(show_toolbar_var.get()))
 view_menu.add_checkbutton(label="Строка состояния", variable=None)
 
 theme_name = tk.StringVar()
@@ -238,12 +255,29 @@ root.config(menu=main_menu)
 root.protocol('WM_DELETE_WINDOW', exit_editor)
 # end блок меню
 
+# toolbar
+shortcut_bar = tk.Frame(root, height=25, background='light sea green')
+
+icons = ('new_file', 'open_file', 'save', 'cut', 'copy', 'paste', 'undo', 'redo', 'find_text')
+
+for i, icon in enumerate(icons):
+    tool_bar_icon = tkinter.PhotoImage(file='icons/{}.gif'.format(icon))
+
+    cmd = eval(icon)
+    tool_bar = tk.Button(shortcut_bar, image=tool_bar_icon, command=cmd)
+    tool_bar.image = tool_bar_icon
+    tool_bar.pack(side='left')
+
+shortcut_bar.pack(expand='no', fill='x')
+# end toolbar
+
+
 root.bind("<Control-N>", lambda x: new_file())
 root.bind("<Control-n>", lambda x: new_file())
 root.bind("<Control-q>", lambda x: exit_editor())
 root.bind("<Control-Q>", lambda x: exit_editor())
-root.bind("<Control-O>", lambda x: file_open())
-root.bind("<Control-o>", lambda x: file_open())
+root.bind("<Control-O>", lambda x: open_file())
+root.bind("<Control-o>", lambda x: open_file())
 root.bind("<Control-S>", lambda x: save())
 root.bind("<Control-s>", lambda x: save())
 root.bind("<Control-Shift-S>", lambda x: saveas())
