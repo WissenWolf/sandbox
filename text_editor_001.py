@@ -97,7 +97,7 @@ def file_open(event=None):
         root.title('{} :: {}'.format(os.path.basename(file_name),
                                      PROGRAM_NAME))
         content_text.delete(1.0, tk.END)
-        with open(file_name) as _file:
+        with open(file_name, encoding='utf-8') as _file:
             content_text.insert(1.0, _file.read())
     return 'break'
 
