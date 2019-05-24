@@ -1,6 +1,6 @@
 import tkinter as tk
 
-__version__ = "1.0b"
+__version__ = "1.1b"
 PROGRAM_NAME = "Quaero! 3.0::Блокнот"
 
 def About():

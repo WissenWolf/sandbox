@@ -3,6 +3,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 import os
 import about
+from tooltip import ToolTip
 # import toolbar
 
 PROGRAM_NAME = "Quaero! 3::Блокнот"
@@ -10,6 +11,8 @@ PROGRAM_NAME = "Quaero! 3::Блокнот"
 root = tk.Tk()
 root.geometry("600x450+200+100")
 root.title(PROGRAM_NAME)
+imgicon = tkinter.PhotoImage(file=r"icons\quaero.png")
+root.call('wm', 'iconphoto', root._w, imgicon)
 
 file_name = None
 last_saved=True
@@ -21,7 +24,7 @@ def callback(event=None):
 def show_toolbar(status):
     print(status)
     if status == 0:
-        shortcut_bar.forget()
+        shortcut_bar.pack_forget()
     elif status == 1:
         shortcut_bar.pack(expand='no', fill='x') # todo заменить на grid
 
@@ -45,6 +48,7 @@ def new_file(event=None):
     global file_name
     file_name = None
     content_text.delete(1.0, tk.END)
+    content_text.edit_reset()
     root.title('{} :: {}'.format("Новый документ", PROGRAM_NAME))
     print("Начинаем новую жизнь с чистого листа")  # отладочная информация
 
@@ -239,6 +243,7 @@ show_toolbar_var = tk.IntVar()
 show_toolbar_var.set(1)
 view_menu.add_checkbutton(label="Показывать тулбар", variable=show_toolbar_var, command=lambda : show_toolbar(show_toolbar_var.get()))
 view_menu.add_checkbutton(label="Строка состояния", variable=None)
+view_menu.add_command(label="Настройки", compound='left', command=callback)
 
 theme_name = tk.StringVar()
 themes_menu = tk.Menu(view_menu)
@@ -259,6 +264,7 @@ root.protocol('WM_DELETE_WINDOW', exit_editor)
 shortcut_bar = tk.Frame(root, height=25, background='light sea green')
 
 icons = ('new_file', 'open_file', 'save', 'cut', 'copy', 'paste', 'undo', 'redo', 'find_text')
+tips  = ("новый документ", "открыть", "сохранить", "вырезать", "скопировать", "вставить", "отменить", "вернуть", "искать")
 
 for i, icon in enumerate(icons):
     tool_bar_icon = tkinter.PhotoImage(file='icons/{}.gif'.format(icon))
@@ -267,6 +273,7 @@ for i, icon in enumerate(icons):
     tool_bar = tk.Button(shortcut_bar, image=tool_bar_icon, command=cmd)
     tool_bar.image = tool_bar_icon
     tool_bar.pack(side='left')
+    ToolTip(tool_bar, text=tips[i])
 
 shortcut_bar.pack(expand='no', fill='x')
 # end toolbar
@@ -287,7 +294,7 @@ root.bind("<Control-Shift-KeyPress-s>", lambda x: saveas())
 
 root.bind_all('<F1>', show_help)
 
-content_text = tk.Text(root, wrap='word', undo=1)
+content_text = tk.Text(root, wrap='word', undo=1, maxundo=6) # @todo перенести maxundo в настройки
 content_text.pack(expand='yes', fill='both')
 content_text.focus_set()
 scroll_bar = tk.Scrollbar(content_text)
